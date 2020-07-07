@@ -39,6 +39,8 @@ require 'Paddle'
 -- but which will mechanically function very differently
 require 'Ball'
 
+require 'Ray'
+
 -- size of our actual window
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -96,6 +98,12 @@ function love.load()
     -- place a ball in the middle of the screen
     ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
 
+    player1.ball = ball
+    player2.ball = ball
+    
+    ball.player1 = player1
+    ball.player2 = player2
+
     -- initialize score variables
     player1Score = 0
     player2Score = 0
@@ -144,7 +152,14 @@ function love.update(dt)
         else
             ball.dx = -math.random(140, 200)
         end
+        print("serve")
     elseif gameState == 'play' then
+        if player1.defencePoint == nil then
+          ball:player1DefencePoint()
+        end
+        if player2.defencePoint == nil then
+          ball:player2DefencePoint()
+        end
         -- detect ball collision with paddles, reversing dx if true and
         -- slightly increasing it, then altering the dy based on the position
         -- at which it collided, then playing a sound effect
@@ -160,6 +175,8 @@ function love.update(dt)
             end
 
             sounds['paddle_hit']:play()
+            ball:player1DefencePoint()
+            ball:player2DefencePoint()
         end
         if ball:collides(player2) then
             ball.dx = -ball.dx * 1.03
@@ -171,8 +188,9 @@ function love.update(dt)
             else
                 ball.dy = math.random(10, 150)
             end
-
             sounds['paddle_hit']:play()
+            ball:player1DefencePoint()
+            ball:player2DefencePoint()
         end
 
         -- detect upper and lower screen boundary collision, playing a sound
@@ -240,6 +258,9 @@ function love.update(dt)
     else
         player1.dy = 0
     end
+    if love.keyboard.isDown('1') then
+        player1.AI = not player1.AI
+    end
 
     -- player 2
     if love.keyboard.isDown('up') then
@@ -249,7 +270,10 @@ function love.update(dt)
     else
         player2.dy = 0
     end
-
+    if love.keyboard.isDown('2') then
+        player2.AI = not player2.AI
+    end
+    
     -- update our ball based on its DX and DY only if we're in play state;
     -- scale the velocity by dt so movement is framerate-independent
     if gameState == 'play' then

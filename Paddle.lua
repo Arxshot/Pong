@@ -32,9 +32,21 @@ function Paddle:init(x, y, width, height)
     self.width = width
     self.height = height
     self.dy = 0
+    
+    self.ball = null;
+    self.AI = false
+    self.defencePoint = { x=x, y=VIRTUAL_HEIGHT/2 }
 end
 
 function Paddle:update(dt)
+    if self.AI then
+      self:AIUpdate(dt)
+    else
+      self:playerUpdate(dt)
+    end
+end
+
+function Paddle:playerUpdate(dt)
     -- math.max here ensures that we're the greater of 0 or the player's
     -- current calculated Y position when pressing up so that we don't
     -- go into the negatives; the movement calculation is simply our
@@ -50,6 +62,21 @@ function Paddle:update(dt)
     end
 end
 
+function Paddle:AIUpdate(dt)
+  if self.defencePoint.y ~= nil then
+    if self.defencePoint.y < self.y then
+      self.y = math.max(0, self.y - PADDLE_SPEED * dt)
+    elseif self.defencePoint.y > self.y + self.height then
+      self.y = math.min(VIRTUAL_HEIGHT - self.height, self.y + PADDLE_SPEED * dt)
+    end
+  else
+    self.ball:player1DefencePoint()
+    self.ball:player2DefencePoint()
+  end
+  self.ball:player1DefencePoint()
+  self.ball:player2DefencePoint()
+end
+
 --[[
     To be called by our main function in `love.draw`, ideally. Uses
     LÖVE2D's `rectangle` function, which takes in a draw mode as the first
@@ -59,4 +86,7 @@ end
 ]]
 function Paddle:render()
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
+    if nil ~= self.defencePoint.y then
+      love.graphics.rectangle('fill', self.x, self.defencePoint.y, 1, 1)
+    end
 end

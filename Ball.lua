@@ -12,6 +12,8 @@
     scoring a point for the opponent.
 ]]
 
+
+
 Ball = Class{}
 
 function Ball:init(x, y, width, height)
@@ -19,6 +21,9 @@ function Ball:init(x, y, width, height)
     self.y = y
     self.width = width
     self.height = height
+    
+    self.player1 = null
+    self.player2 = null
 
     -- these variables are for keeping track of our velocity on both the
     -- X and Y axis, since the ball can move in two dimensions
@@ -31,8 +36,6 @@ end
     on whether their rectangles overlap.
 ]]
 function Ball:collides(paddle)
-    -- first, check to see if the left edge of either is farther to the right
-    -- than the right edge of the other
     if self.x > paddle.x + paddle.width or paddle.x > self.x + self.width then
         return false
     end
@@ -45,11 +48,110 @@ function Ball:collides(paddle)
 
     -- if the above aren't true, they're overlapping
     return true
+    
 end
 
 --[[
     Places the ball in the middle of the screen, with no movement.
 ]]
+
+function Ball:player1DefencePoint()
+    local x  = self.x
+    local y  = self.y
+    local dx = self.dx
+    local dy = self.dy
+    local ray = Ray(x,y,dx + x,dy + y)
+    for i = 0, 3, 1 do
+      print("here")
+      local vecX, vecY = ray:castray(self.player1.x+(self.player1.width/2), 0, self.player1.x+(self.player1.width/2), VIRTUAL_HEIGHT)
+      if (vecX ~= nil and vecY ~= nil) then
+        self.player1.defencePoint.y = vecY
+        self.player1.defencePoint.x = vecX
+        return
+      end
+      
+      vecX, vecY = ray:castray(0, 0, VIRTUAL_WIDTH, 0)
+      if (vecX ~= nil and vecY ~= nil) then
+        dy = dy * -1
+        x = vecX
+        y = vecY
+        
+        ray.x = x
+        ray.y = y
+        ray.dx = dx + x
+        ray.dy = dy + y           
+        else
+        vecX,vecY = ray:castray(0, VIRTUAL_HEIGHT, VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+        if (vecX ~= nil and vecy ~= nil) then
+          dy = dy * -1
+          x = vecX
+          y = vecY
+        
+          ray.x = x
+          ray.y = y
+          ray.dx = dx + x
+          ray.dy = dy + y     
+          else
+          vecX, vecY = ray:castray(self.player2.x+(self.player2.width/2), 0, self.player2.x+(self.player2.width/2), VIRTUAL_HEIGHT)
+          if (vecX ~= nil and vecY ~= nil) then
+            dx = dx * -1
+            x = vecX
+            y = vecY
+        
+            ray.x = x
+            ray.y = y
+            ray.dx = dx + x
+            ray.dy = dy + y
+          end
+        end  
+      end
+      
+    end
+end
+
+function Ball:player2DefencePoint()
+    local x  = self.x
+    local y  = self.y
+    local dx = self.dx
+    local dy = self.dy
+    local ray = Ray(x,y,dx + x,dy + y)
+    --for i = 0, 3, 1 do
+      local vecX, vecY = ray:castray(self.player2.x+(self.player2.width/2), 0, self.player2.x+(self.player2.width/2), VIRTUAL_HEIGHT)
+      if (vecX ~= nil and vecy ~= nil) then
+        self.player2.defencePoint.y = vecY
+        self.player2.defencePoint.x = vecX
+        return
+      end
+      
+      vecX, vecY = ray:castray(0, 0, VIRTUAL_WIDTH, 0)
+      if (vecX ~= nil and vecY ~= nil) then
+        dy = dy * -1
+        x = vecX
+        y = vecY
+        
+        ray:set(x,y,dx + x,dy + y)
+      else
+        vecX,vecYy = ray:castray(0, VIRTUAL_HEIGHT, VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+        if (vecX ~= nil and vecY ~= nil) then
+          dy = dy * -1
+          x = vecX
+          y = vecY
+        
+          ray:set(x,y,dx + x,dy + y)
+        else
+          vecX, vecY = ray:castray(self.player1.x+(self.player1.width/2), 0, self.player1.x+(self.player1.width/2), VIRTUAL_HEIGHT)
+          if (vecX ~= nil and vecY ~= nil) then
+            dx = dx * -1
+            x = vecX
+            y = vecY
+        
+            ray:set(x,y,dx + x,dy + y)
+          end
+        end  
+      end
+    --end
+end
+
 function Ball:reset()
     self.x = VIRTUAL_WIDTH / 2 - 2
     self.y = VIRTUAL_HEIGHT / 2 - 2
@@ -64,4 +166,34 @@ end
 
 function Ball:render()
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
+    
+    self:renderline(self.x, self.y, self.dx, self.dy)
+end
+
+function Ball:renderline(x,y,dx,dy)
+    for i = 0, 3, 1 do
+      ray = Ray(x,y,dx+x,dy+y)
+      
+      local x1, y1 = ray:castray(0, 0, VIRTUAL_WIDTH, 0)
+      if x1 ~= nil or y1 ~= nil then
+        love.graphics.line(x,y,x1,y1);
+        self:renderline(x1, y1, dx, dy)
+      end
+    
+      x1, y1 = ray:castray(0, VIRTUAL_HEIGHT, VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+      if x ~= nil or y ~= nil then
+        love.graphics.line(x,y,x1,y1);
+        self:renderline(x1, y1, dx, dy)
+      end  
+    
+      x1, y1 = ray:castray(self.player1.x+(self.player1.width/2), 0, self.player1.x+(self.player1.width/2), VIRTUAL_HEIGHT)
+      if x1 ~= nil or y1 ~= nil then
+        love.graphics.line(x,y,x1,y1);
+      end   
+    
+      x1, y1 = ray:castray(self.player2.x+(self.player2.width/2), 0, self.player2.x+(self.player2.width/2), VIRTUAL_HEIGHT)
+      if x1 ~= nil or y1 ~= nil then
+        love.graphics.line(x,y,x1,y1);
+      end  
+    end
 end

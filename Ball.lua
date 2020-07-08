@@ -152,6 +152,34 @@ function Ball:player2DefencePoint()
     --end
 end
 
+function Ball:DefencePoint(p1,p2,x,y,dx,dy)
+  local ray = Ray(x,y,dx + x,dy + y)
+    local vecX, vecY = ray:castray(p1.x+(p1.width/2), 0, p1.x+(p1.width/2), VIRTUAL_HEIGHT)
+    if (vecX ~= nil and vecy ~= nil) then
+      p1.defencePoint.y = vecY
+      p1.defencePoint.x = vecX
+      return
+    end
+    
+    vecX, vecY = ray:castray(0, 0, VIRTUAL_WIDTH, 0)
+    if (vecX ~= nil and vecY ~= nil) then
+      Ball:DefencePoint(p1,p2,vecX,vecY,dx,-dy)
+      return
+    end
+
+    vecX,vecYy = ray:castray(0, VIRTUAL_HEIGHT, VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+    if (vecX ~= nil and vecY ~= nil) then
+      Ball:DefencePoint(p1,p2,vecX,vecY,dx,-dy)
+      return
+    end
+
+    vecX, vecY = ray:castray(p2.x+(p2.width/2), 0, p2.x+(p2.width/2), VIRTUAL_HEIGHT)
+    if (vecX ~= nil and vecY ~= nil) then
+      Ball:DefencePoint(p1,p2,vecX,vecY,-dx,dy)
+      return
+    end
+end
+
 function Ball:reset()
     self.x = VIRTUAL_WIDTH / 2 - 2
     self.y = VIRTUAL_HEIGHT / 2 - 2
@@ -166,34 +194,49 @@ end
 
 function Ball:render()
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
-    
-    self:renderline(self.x, self.y, self.dx, self.dy)
+    if gameState == 'play' then
+      self:renderline(self.player1,self.player2,self.x, self.y, self.dx, self.dy,5)
+    end
 end
 
-function Ball:renderline(x,y,dx,dy)
-    for i = 0, 3, 1 do
-      ray = Ray(x,y,dx+x,dy+y)
-      
-      local x1, y1 = ray:castray(0, 0, VIRTUAL_WIDTH, 0)
-      if x1 ~= nil or y1 ~= nil then
-        love.graphics.line(x,y,x1,y1);
-        self:renderline(x1, y1, dx, dy)
-      end
+function Ball:renderline(p1,p2,x,y,dx,dy,num)
+  if num == 0 then
+    return
+  end
+    x = math.max(math.min(p2.x+(p2.width/2),p1.x+(p1.width/2)),x)
+    x = math.min(math.max(p2.x+(p2.width/2),p1.x+(p1.width/2)),x)
+    y = math.max(0,y)
+    y = math.min(VIRTUAL_HEIGHT-self.height,y)
+    local ray = Ray(x,y,dx + x,dy + y)
     
-      x1, y1 = ray:castray(0, VIRTUAL_HEIGHT, VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
-      if x ~= nil or y ~= nil then
-        love.graphics.line(x,y,x1,y1);
-        self:renderline(x1, y1, dx, dy)
-      end  
-    
-      x1, y1 = ray:castray(self.player1.x+(self.player1.width/2), 0, self.player1.x+(self.player1.width/2), VIRTUAL_HEIGHT)
-      if x1 ~= nil or y1 ~= nil then
-        love.graphics.line(x,y,x1,y1);
-      end   
-    
-      x1, y1 = ray:castray(self.player2.x+(self.player2.width/2), 0, self.player2.x+(self.player2.width/2), VIRTUAL_HEIGHT)
-      if x1 ~= nil or y1 ~= nil then
-        love.graphics.line(x,y,x1,y1);
-      end  
+    local vecX, vecY
+
+    vecX, vecY = ray:castray(p2.x+(p2.width/2), 0, p2.x+(p2.width/2), VIRTUAL_HEIGHT-self.height)
+    if (vecX ~= nil and vecY ~= nil) then
+      love.graphics.line(x,y,vecX,vecY)
+      self:renderline(p1,p2,vecX,vecY,-dx,dy,num-1)
+      return
     end
+
+    vecX, vecY = ray:castray(p1.x+(p1.width/2), 0, p1.x+(p1.width/2), VIRTUAL_HEIGHT-self.height)
+    if (vecX ~= nil and vecY ~= nil) then
+      love.graphics.line(x,y,vecX,vecY)
+      self:renderline(p1,p2,vecX,vecY,-dx,dy,num-1)
+      return
+    end
+
+    vecX, vecY = ray:castray(0, 0, VIRTUAL_WIDTH, 0)
+    if (vecX ~= nil and vecY ~= nil) then
+      love.graphics.line(x,y,vecX,vecY)
+      self:renderline(p1,p2,vecX,vecY,dx,-dy,num-1)
+      return
+    end
+
+    vecX, vecY = ray:castray(0, VIRTUAL_HEIGHT-self.height, VIRTUAL_WIDTH, VIRTUAL_HEIGHT-self.height)
+    if (vecX ~= nil and vecY ~= nil) then
+      love.graphics.line(x,y,vecX,vecY)
+      self:renderline(p1,p2,vecX,vecY,dx,-dy,num-1)
+      return
+    end
+
 end

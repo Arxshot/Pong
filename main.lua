@@ -17,6 +17,9 @@
     modern systems.
 ]]
 
+if pcall(require, "lldebugger") then require("lldebugger").start() end
+if pcall(require, "mobdebug") then require("mobdebug").start() end
+
 -- push is a library that will allow us to draw our game at a virtual
 -- resolution, instead of however large our window is; used to provide
 -- a more retro aesthetic
@@ -152,7 +155,6 @@ function love.update(dt)
         else
             ball.dx = -math.random(140, 200)
         end
-        print("serve")
     elseif gameState == 'play' then
         if player1.defencePoint == nil then
           ball:player1DefencePoint()

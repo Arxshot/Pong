@@ -33,7 +33,7 @@ function Paddle:init(x, y, width, height)
     self.height = height
     self.dy = 0
     
-    self.ball = null;
+    self.ball = nil;
     self.AI = false
     self.defencePoint = { x=x, y=VIRTUAL_HEIGHT/2 }
 end
@@ -64,9 +64,9 @@ end
 
 function Paddle:AIUpdate(dt)
   if self.defencePoint.y ~= nil then
-    if self.defencePoint.y < self.y then
+    if self.defencePoint.y < self.y + self.height*0.25 then
       self.y = math.max(0, self.y - PADDLE_SPEED * dt)
-    elseif self.defencePoint.y > self.y + self.height then
+    elseif self.defencePoint.y > self.y + self.height*0.75 then
       self.y = math.min(VIRTUAL_HEIGHT - self.height, self.y + PADDLE_SPEED * dt)
     end
   else
@@ -86,7 +86,4 @@ end
 ]]
 function Paddle:render()
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
-    if nil ~= self.defencePoint.y then
-      love.graphics.rectangle('fill', self.x, self.defencePoint.y, 1, 1)
-    end
 end

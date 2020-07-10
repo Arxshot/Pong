@@ -20,6 +20,11 @@
 if pcall(require, "lldebugger") then require("lldebugger").start() end
 if pcall(require, "mobdebug") then require("mobdebug").start() end
 
+if love == nil then
+    error("Expected to run in love environment")
+    love = nil  -- make linter happy
+end
+
 -- push is a library that will allow us to draw our game at a virtual
 -- resolution, instead of however large our window is; used to provide
 -- a more retro aesthetic
@@ -155,6 +160,7 @@ function love.update(dt)
         else
             ball.dx = -math.random(140, 200)
         end
+        print("serve")
     elseif gameState == 'play' then
         if player1.defencePoint == nil then
           ball:player1DefencePoint()
@@ -165,7 +171,7 @@ function love.update(dt)
         -- detect ball collision with paddles, reversing dx if true and
         -- slightly increasing it, then altering the dy based on the position
         -- at which it collided, then playing a sound effect
-        if ball:collides(player1) then
+        if ball:collides(player1,dt) then
             ball.dx = -ball.dx * 1.03
             ball.x = player1.x + 5
 
@@ -180,7 +186,7 @@ function love.update(dt)
             ball:player1DefencePoint()
             ball:player2DefencePoint()
         end
-        if ball:collides(player2) then
+        if ball:collides(player2,dt) then
             ball.dx = -ball.dx * 1.03
             ball.x = player2.x - 4
 

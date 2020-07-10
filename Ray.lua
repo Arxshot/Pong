@@ -47,6 +47,26 @@ function Ray:castray(x1, y1, x2, y2)
     
 end
 
+function Ray:castray2(x1, y1, x2, y2)
+  local den = (x1 - x2) * (self.y1 - self.y2) - (y1 - y2) * (self.x1 - self.x2)
+
+  
+  if den == 0 then
+    return false
+  end
+  
+  local t =  ((x1 - self.x1) * (self.y1 -  self.y2) - (y1 -  self.y1) * (self.x1 -  self.x2)) / den
+  local u =  -((x1 - x2) * (y1 -  self.y1) - (y1 -  y2) * (x1 -  self.x1)) / den
+  
+  if t > 0 and t < 1 and u > 0 and u < 1 then 
+    return true
+  else 
+    return false
+  end
+  
+  
+end
+
 --[[
     To be called by our main function in `love.draw`, ideally. Uses
     LÖVE2D's `rectangle` function, which takes in a draw mode as the first
